@@ -1,0 +1,7 @@
+section text
+load abc
+section data
+lad: const 10
+abc: space 
+teste: const 10
+teste2: const 0

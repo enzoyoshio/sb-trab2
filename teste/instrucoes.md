@@ -8,6 +8,7 @@ ld -m elf_i386 -o {program} {program}.o
 ```
 
 if your OS is not 64bits, then use:
+
 ```
 ld -o {program} {program}.o
 ```
