@@ -6,6 +6,9 @@ str_2_int:
  mov dword [__num1__],eax
  mov ebx, 0
  mov edx,__string__
+ cmp edx,'-'
+ jne loop_str_2_int
+ inc edx
  loop_str_2_int:
  mov ecx, dword [__size__]
  cmp ecx,ebx
@@ -21,7 +24,13 @@ str_2_int:
  inc edx
  jmp loop_str_2_int
  fim_loop_str_2_int:
- pop ebp
+ mov edx,__string__
+ cmp edx,'-'
+ jne fim_str_2_int
+ mov eax, dword [__num1__]
+ imul eax, -1
+ mov dword [__num1__], eax
+ fim_str_2_int: pop ebp
  ret
  input:
  push ebp
@@ -128,36 +137,8 @@ mov ebx, dword [__num1__]
 mov dword [num2],ebx
 popa
 
-mov ebx, dword 0
-mov ebx, dword [num2]
-pusha
-mov dword [__num__],ebx
-call output
-popa
-mov dword [num2],ebx
-
-pusha
-call input
-mov ebx, dword 0
-mov ebx, dword [__num1__]
-mov dword [num3],ebx
-popa
-
-mov ebx, dword 0
-mov ebx, dword [num3]
-pusha
-mov dword [__num__],ebx
-call output
-popa
-mov dword [num3],ebx
-
-mov ebx, dword 0
-mov ebx, dword [num1]
-pusha
-mov dword [__num__],ebx
-call output
-popa
-mov dword [num1],ebx
+dbb:
+mov ebx, [num2]
 
 mov ebx, dword 0
 mov ebx, dword [num2]
@@ -177,11 +158,13 @@ int 0x80
 
 
 
+
 section .bss
  __string__              resd 100
  __size__                resd 1
  num2 resd 1
  num3 resd 1
+ res resd 1
  char2 resd 1
  
 section .data
