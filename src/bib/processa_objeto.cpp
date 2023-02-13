@@ -23,7 +23,7 @@ namespace processa_objeto {
         if(this->operacao != "") {
             fileoutput << this->operacao << " ";
             char c = ' ';
-            if(this->operacao == "copy" || this->operacao == "macro")
+            if(this->operacao == "copy" || this->operacao == "macro" || this->operacao == "input_s" || this->operacao == "output_s")
                 c = ',';
 
             std::string s;
@@ -86,21 +86,24 @@ namespace processa_objeto {
             this->operacao = tok[0];
             tok.erase(tok.begin());
             // vou levar aluns pontos em consideracao
-            if(this->operacao == "copy") {
+            if(this->operacao == "copy" || this->operacao == "output_s" || this->operacao == "input_s") {
                 tok = helper::parser(helper::join(tok, ' '), ',');
+
             }else {
                 if(this->operacao == "macro") {
                     tok = helper::parser(helper::join(tok, ' '), ',');
                 }
             } 
-            for(auto it: tok)
+            for(auto it: tok) {
                 this->operadores.push_back(it);    
+            }
         }
 
         this->rotulo = helper::trim(helper::tolower(this->rotulo));
         this->operacao = helper::trim(helper::tolower(this->operacao));
-        for(auto &it: this->operadores)
+        for(auto &it: this->operadores) {
             it = helper::trim(helper::tolower(it));
+        }
     }
 
     void Line::print() {
@@ -123,12 +126,64 @@ namespace processa_objeto {
         std::ofstream fileoutput(filename + ".S");
 
         // guardar as variaveis locais
-        std::vector<std::string> bss = {"section .bss"}, data = {"section .data", "__report__ db 'Quantidade de Bytes lidos/escritos = '"};
+        std::vector<std::string> bss = {"section .bss\n", 
+                                        "__string__              resw 100\n",
+                                        "__size__                resw 1\n"}, 
+        
+        data = {
+            "section .data\n", 
+            "__report__ db 'Quantidade de Bytes lidos/escritos = '\n",
+            "__num__     dw 20754\n",
+            "__num1__        dw 888\n",
+        };
 
         // colocar aqui as funcoes para ler e escrever
         // lembrar de usar pusha e popa antes de chamar a funcao
         // e ja colocar nos argumento ecx e edx as info necessarias
+        
         std::vector<std::string> inout = {
+            "str_2_int:\n",
+            "push ebp\n",
+            "mov eax, 0\n",
+            "mov [__num1__],eax\n",
+            "mov ebx, 0\n",                   
+            "mov edx,__string__\n",
+                 
+            "loop_str_2_int:\n",
+            
+            "mov ecx,[__size__]\n",             
+            "cmp ecx,ebx\n",
+            "je fim_loop_str_2_int\n",      
+            "mov eax,[__num1__]\n",             
+            "imul eax,10\n",             
+            "mov ecx,0\n",
+            "mov cl, byte [edx]\n",             
+            "sub ecx,'0'\n",              
+            "add eax,ecx\n",              
+            "mov [__num1__],eax\n",            
+            "inc ebx\n",                  
+            "inc edx\n",                   
+            "jmp loop_str_2_int\n",
+            "fim_loop_str_2_int:\n",
+            "pop ebp\n",
+            "ret\n",
+            "input:\n",
+            "push ebp\n",
+            "mov eax, 3\n",									
+            "mov ebx, 1\n",									
+            "mov ecx, __string__\n",
+            "mov edx, 10\n",
+            "int 0x80\n",								
+            "dec eax\n",
+            "mov [__size__],eax\n",
+            
+            "pusha\n",
+            "call str_2_int\n",
+            "popa\n",
+            "pop ebp\n",
+            "ret\n",
+            
+            
             "input_c:\n",
             "mov eax, 3\n",									
             "mov ebx, 1\n",	
@@ -141,6 +196,89 @@ namespace processa_objeto {
             "mov ebx, 1\n",	
             "int 0x80\n",
             "ret\n",
+
+            "output:\n",
+            "push ebp\n",
+            "call int_2_str\n",
+            
+            "mov eax, 4\n",									
+            "mov ebx, 1\n",								
+            "mov ecx, __string__\n",
+            "mov edx, [__size__]\n",
+            "int 0x80\n",								
+            "pop ebp\n",
+            "ret\n",
+
+            "int_2_str:\n",
+            
+            "push ebp\n",
+            "mov eax, 0\n",
+            "push dword [__num__]\n",
+            "call int_size\n",
+            "mov [__size__], eax\n",
+
+            "tst:\n",
+            "pop dword eax\n",
+            
+            "push dword [__size__]\n",
+            "push dword [__num__]\n",
+            "call int_to_str\n",
+            "pop dword ebp\n",
+            "pop dword ebp\n",
+
+            "pop ebp\n",
+            "ret\n",
+        
+            "int_size:\n",
+            "push ebp\n",
+            "mov ebp, esp\n",
+
+            "mov eax, [ebp+8]\n",
+            "mov cx, 10\n",
+            "mov bx, 0\n",
+
+            "int_size_loop:\n",
+            "xor edx, edx\n",
+            "div cx\n",
+
+            "inc bx\n",
+            "cmp eax, 0\n",
+            "jne int_size_loop\n",  
+
+            "int_size_ret:\n",
+            "mov eax, ebx\n",
+            "pop ebp\n",
+            "ret\n",
+
+
+            "int_to_str:\n",
+            "push ebp\n",
+            "mov ebp, esp\n",
+
+            "mov eax, dword [ebp+8]\n",
+            "mov bx, [ebp+12]\n",
+            "mov edi, __string__\n",
+
+            "sub ebx, 1\n",
+
+            "int_to_str_loop:\n",
+            "mov cx, 10\n",
+            "xor edx, edx\n",
+            "div cx\n",
+
+            "add edx, '0'\n",
+            "mov cl, dl\n",
+            "mov [edi+ebx], cl\n",
+
+            "dec bx\n",
+            "cmp eax, 0\n",
+            "jne int_to_str_loop\n",
+
+            "int_to_str_ret:\n",
+            "pop ebp\n",
+            "ret\n",
+
+
 
             "output_c:\n",
             // "mov edx, 10\n",
@@ -180,7 +318,7 @@ namespace processa_objeto {
                 fileoutput << "global _start\n";
 
                 helper::flushline(fileoutput, inout);
-                
+
                 fileoutput << "_start:\n";
             }else if(operacao == "section" && operadores[0] == "data") {
                 inData = true;
@@ -190,9 +328,9 @@ namespace processa_objeto {
                 // space -> bss
                 // const -> data
                 if(operacao == "space") {
-                    bss.push_back(rotulo + " resb " + (operadores.size() ? std::to_string(operadores[0]*10) : ""));
+                    bss.push_back(rotulo + " resw " + (operadores.size() ? std::to_string(std::stoi(operadores[0])*10) : "1") + "\n");
                 }else {
-                    data.push_back(rotulo + " dw " + operadores[0]);
+                    data.push_back(rotulo + " dw " + operadores[0] + "\n");
                 }
             }else {
 
@@ -211,10 +349,10 @@ namespace processa_objeto {
                     // basicamente esta fazendo
                     // ope acc,variavel
                     // e se for uma label? tenho que colocar entre parenteses? 
-                    fileoutput << operacao << ' ' << acc << ",[" << operadores[0] << "]" << std::endl;
+                    fileoutput << operacao << ' ' << acc << ", dword [" << operadores[0] << "]" << std::endl;
                 }else if(operacao == "mul" || operacao == "div") {
                     
-                    fileoutput << operacao << " [" << operadores[0] << "]" << std::endl;
+                    fileoutput << operacao << " dword [" << operadores[0] << "]" << std::endl;
                 }else if(operacao == "jmp") {
                     fileoutput << operacao << ' ' << operadores[0] << std::endl;
                 }else if(operacao == "jmpn") {
@@ -232,16 +370,21 @@ namespace processa_objeto {
 
                     // mov ebx,[mem1]
                     // mov [mem2],ebx
-                    fileoutput << "mov ebx,[" << operadores[0] << "]" << std::endl;
-                    fileoutput << "mov [" << operadores[1] << "],ebx" << std::endl;  
+                    fileoutput << "mov ebx, dword [" << operadores[0] << "]" << std::endl;
+                    fileoutput << "mov dword [" << operadores[1] << "],ebx" << std::endl;  
                 }else if(operacao == "load") {
                     // load A
                     // mov eax,[A]
-                    fileoutput << "mov " << acc << ",[" << operadores[0] << "]" << std::endl;
+                    fileoutput << "mov " << acc << ", dword [" << operadores[0] << "]" << std::endl;
                 }else if(operacao == "store") {
                     fileoutput << "mov [" << operadores[0] << "]," << acc << std::endl;
                 }else if(operacao == "input") {
                     // le inteiro
+                    fileoutput << "pusha" << std::endl;
+                    fileoutput << "call input" << std::endl;
+                    fileoutput << "mov ebx, dword [__num1__]" << std::endl; // movendo resultado para ebx
+                    fileoutput << "mov dword [" << operadores[0] << "],ebx" << std::endl; // movendo resultado para a label correta
+                    fileoutput << "popa" << std::endl;
                 }else if(operacao == "input_c") {
                     // le um char
                     fileoutput << "pusha" << std::endl;
@@ -258,6 +401,12 @@ namespace processa_objeto {
                     fileoutput << "popa" << std::endl;
                 }else if(operacao == "output") {
                     // imprime um inteiro
+                    fileoutput << "mov ebx, dword [" << operadores[0] << "]" << std::endl; // movendo resultado para a label correta
+                    fileoutput << "pusha" << std::endl;
+                    fileoutput << "mov dword [__num__],ebx" << std::endl; // movendo resultado para ebx
+                    fileoutput << "call output" << std::endl;
+                    fileoutput << "popa" << std::endl;
+                    fileoutput << "mov dword [" << operadores[0] << "],ebx" << std::endl;
                 }else if(operacao == "output_c") {
                     // imprime um char
                     fileoutput << "pusha" << std::endl;
@@ -274,7 +423,11 @@ namespace processa_objeto {
                     fileoutput << "popa" << std::endl;
                 }
             }
+            fileoutput << std::endl;
         }
+
+        helper::flushline(fileoutput, bss);
+        helper::flushline(fileoutput, data);
     }
 }
 

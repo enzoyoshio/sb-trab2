@@ -1,0 +1,6 @@
+section text
+input_s hello,5
+output_s hello,5
+stop 
+section data
+hello: space 5
