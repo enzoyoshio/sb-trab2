@@ -1,81 +1,83 @@
 section .text
 	global _start
 
-    _start:
-        push dword num
-        call str_len
+    _start:     
+        mov eax, 0
+        push dword [num]
+        call int_size
+        mov [size], eax
 
-        mov [len], esi
-        call str_2_int
-        
+    tst:
+        pop eax
+
+        push dword [size]
+        push dword [num]
+        call int_to_str
+
+        mov eax, 4
+        mov ebx, 1
+        mov ecx, string
+        mov edx, 6
+        int 0x80									; make the interruption
+
+
     exit:
         mov ebx, 0									; error code 0
         mov eax, 1									; syscall to exit
         int 0x80									; make the interruption
 
-    str_2_int:
-        push ebp
-        mov ebp, esp
-
-        mov ecx, 0
-        mov ebx, 0
-
-    str_2_int_loop:
-        mov eax, 0
-        mov al, byte [num+ebx]
-        sub al, '0'
-
-        mov edi, esi
-        sub edi, 1
-        dec esi
-    pow:
-        cmp edi, 0
-        je one
-        jmp exp
-        one: imul eax, byte 1
-            jmp str_2_int_c
-        exp: imul eax, byte 10
-        dec edi
-        cmp edi, 0
-        jg pow
-
-    str_2_int_c:
-        add ecx, eax
-        inc ebx
-        cmp esi, 0
-        jg str_2_int_loop
-
-
-    str_2_int_ret:
-        pop ebp
-        ret
-    
-    str_len:
+    int_size:
         push ebp
         mov ebp, esp
 
         mov eax, [ebp+8]
-        mov edi, eax
+        mov cx, 10
+        mov bx, 0
 
-        mov esi, 0
+    int_size_loop:
+        xor edx, edx
+        div cx
 
-    str_len_loop:
-        ; add esi, 3
-        mov eax, [edi+esi]
-        mov [char], eax
+        inc bx
+        cmp eax, 0
+        jne int_size_loop  
 
-        inc esi                                     ; incrementing
-        cmp [char], byte 0                                 ; compare
-        jne str_len_loop
-    
-    str_len_ret:
-        sub esi, 1
+    int_size_ret:
+        mov eax, ebx
+        pop ebp
+        ret
+
+    int_to_str:
+        push ebp
+        mov ebp, esp
+
+        mov eax, [ebp+8]
+        mov bx, [ebp+12]
+        mov edi, string
+
+        mov [edi+5], byte 0
+        sub ebx, 1
+
+    int_to_str_loop:
+        mov cx, 10
+        xor edx, edx
+        div cx
+
+        add edx, '0'
+        mov cl, dl
+        mov [edi+ebx], cl
+
+        dec bx
+        cmp eax, 0
+        jne int_to_str_loop  
+
+    int_to_str_ret:
         pop ebp
         ret
 
 section .data
-    num     db '20754',0
+    num     dd 20754
 
 section .bss
-    char    resb 1
-    len     resb 1
+    string    resb 100
+    size     resb 1

@@ -1,16 +1,43 @@
 section .text
     global _start
 
+    print:
+        push ebp
+
+        mov ecx, __readString__
+        mov eax,0
+
+        loop_print:
+
+        pusha
+        mov eax, 4									; syscall to read
+		mov ebx, 1									; read to stdout
+		mov edx, 1
+		int 0x80									; make the interruption
+        popa
+
+        mov bl, byte [ecx]
+        mov ebx,[__size__]
+        cmp eax,ebx
+        je exit
+        inc eax
+        inc ecx
+        jmp loop_print
+
+    exit:
+        pop ebp
+        ret
+
     _start:
 
         ; remember to pusha and popa before and after each call function
+        
         call input
+      
 
         ;call print
         
-        mov edx, [num1]
-        mov [__num__], edx
-        call output
+        ;call output
 
         ; exit program
         mov eax,1
@@ -19,48 +46,50 @@ section .text
 
     str_2_int:
         push ebp
-
         ; zerando num1
         ; num1 = 0
         mov eax, 0
-        mov [num1],eax
-        mov ebx, 0                   ; contador
-        mov edx,msg
+        mov [__num__],eax                   ; num = 0
+        mov ebx, 0                          ; contador
+        mov ecx,__readString__              ; ebp + 8 deve ter o inicio do coisa
                  
         loop_str_2_int:
             
-            mov ecx,[__size__]              ; ecx = *edx // in c lang
-            cmp ecx,ebx
-            je fim_loop_str_2_int       ; se chegou ao final sai do loop
-            mov eax,[num1]              ; eax = valor em num1
-            imul eax,10                 ; eax *= 10
-            mov ecx,0
-            mov cl, byte [edx]               ; ecx = *edx
-            sub ecx,'0'                 ; edx -= '0'
-            add eax,ecx                 ; eax += edx
-            mov [num1],eax              ; salva o valor num1 = eax
-            inc ebx                     ; incrementa contador
-            inc edx                     ; passa pro proximo valor ?
+            mov edx,[__size__]              ; edx = *ecx // in c lang
+            cmp edx,ebx
+            je fim_loop_str_2_int           ; se chegou ao final sai do loop
+            mov eax,[__num__]               ; eax = valor em num1
+            imul eax,10                     ; eax *= 10
+            mov edx,0
+            mov dl, byte [ecx]              ; edx = *ecx
+            sub edx,'0'                     ; edx -= '0'
+            add eax,edx                     ; eax += edx
+            mov [__num__],eax               ; salva o valor num1 = eax
+            inc ebx                         ; incrementa contador
+            inc ecx                         ; passa pro proximo valor ?
             jmp loop_str_2_int
         fim_loop_str_2_int:
         pop ebp
-        ret
+        ret 
 
     input:
         push ebp
+
         mov eax, 3									; syscall to read
 		mov ebx, 1									; read to stdout
-		mov ecx, msg
+		mov ecx, __readString__
 		mov edx, 10
 		int 0x80									; make the interruption
         dec eax
         mov [__size__],eax
-        
-        pusha
+
+        ;call print
+        ;pop ebp
+        ;ret
+
         call str_2_int
-        popa
         pop ebp
-        ret
+        ret 
 
     ; _start ta chamando essa label output
     output:
@@ -76,9 +105,7 @@ section .text
         pop ebp
         ret
 
-    ; output ta chamando essa label int_2_str
     int_2_str:
-        ; se eu retorno aqui ele da seg fault
         push ebp
         mov eax, 0
         push dword [__num__]
@@ -148,16 +175,9 @@ section .text
 
 
 section .data
-    strnum db '123'
-    __num__     dw 20754
-    msg         dw '++++++++++++++++++++++' 
-    num1        dw 888
+    __num__             dw 888
+    __readString__      dw '++++++++++++++++++' 
 
 section .bss
-
-    ;msg resb 10
-    result_int_str_reverse  resb 100
-    result_int_str          resb 100
-    result_int_str_size     resb 100
     __string__              resw 100
     __size__                resw 1

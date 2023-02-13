@@ -123,7 +123,7 @@ namespace processa_objeto {
         std::ofstream fileoutput(filename + ".S");
 
         // guardar as variaveis locais
-        std::vector<std::string> bss = {"section .bss"}, data = {"section .data", "report db 'Quantidade de Bytes lidos/escritos = '"};
+        std::vector<std::string> bss = {"section .bss"}, data = {"section .data", "__report__ db 'Quantidade de Bytes lidos/escritos = '"};
 
         // colocar aqui as funcoes para ler e escrever
         // lembrar de usar pusha e popa antes de chamar a funcao
@@ -178,6 +178,9 @@ namespace processa_objeto {
             if(operacao == "section" && operadores[0] == "text") {
                 fileoutput << "section .text\n";
                 fileoutput << "global _start\n";
+
+                helper::flushline(fileoutput, inout);
+                
                 fileoutput << "_start:\n";
             }else if(operacao == "section" && operadores[0] == "data") {
                 inData = true;
@@ -187,9 +190,9 @@ namespace processa_objeto {
                 // space -> bss
                 // const -> data
                 if(operacao == "space") {
-
+                    bss.push_back(rotulo + " resb " + (operadores.size() ? std::to_string(operadores[0]*10) : ""));
                 }else {
-
+                    data.push_back(rotulo + " dw " + operadores[0]);
                 }
             }else {
 
