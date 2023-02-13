@@ -3,20 +3,20 @@ global _start
 str_2_int:
  push ebp
  mov eax, 0
- mov [__num1__],eax
+ mov dword [__num1__],eax
  mov ebx, 0
  mov edx,__string__
  loop_str_2_int:
- mov ecx,[__size__]
+ mov ecx, dword [__size__]
  cmp ecx,ebx
  je fim_loop_str_2_int
- mov eax,[__num1__]
+ mov eax, dword [__num1__]
  imul eax,10
  mov ecx,0
  mov cl, byte [edx]
  sub ecx,'0'
  add eax,ecx
- mov [__num1__],eax
+ mov dword [__num1__],eax
  inc ebx
  inc edx
  jmp loop_str_2_int
@@ -31,7 +31,7 @@ str_2_int:
  mov edx, 10
  int 0x80
  dec eax
- mov [__size__],eax
+ mov dword [__size__],eax
  pusha
  call str_2_int
  popa
@@ -53,7 +53,7 @@ str_2_int:
  mov eax, 4
  mov ebx, 1
  mov ecx, __string__
- mov edx, [__size__]
+ mov edx, dword [__size__]
  int 0x80
  pop ebp
  ret
@@ -62,7 +62,7 @@ str_2_int:
  mov eax, 0
  push dword [__num__]
  call int_size
- mov [__size__], eax
+ mov dword [__size__], eax
  tst:
  pop dword eax
  push dword [__size__]
@@ -123,19 +123,49 @@ _start:
 
 pusha
 call input
+mov ebx, dword 0
 mov ebx, dword [__num1__]
 mov dword [num2],ebx
 popa
 
+mov ebx, dword 0
 mov ebx, dword [num2]
-mov dword [num3],ebx
+pusha
+mov dword [__num__],ebx
+call output
+popa
+mov dword [num2],ebx
 
+pusha
+call input
+mov ebx, dword 0
+mov ebx, dword [__num1__]
+mov dword [num3],ebx
+popa
+
+mov ebx, dword 0
 mov ebx, dword [num3]
 pusha
 mov dword [__num__],ebx
 call output
 popa
 mov dword [num3],ebx
+
+mov ebx, dword 0
+mov ebx, dword [num1]
+pusha
+mov dword [__num__],ebx
+call output
+popa
+mov dword [num1],ebx
+
+mov ebx, dword 0
+mov ebx, dword [num2]
+pusha
+mov dword [__num__],ebx
+call output
+popa
+mov dword [num2],ebx
 
 mov eax,1
 mov ebx,0
@@ -148,16 +178,16 @@ int 0x80
 
 
 section .bss
- __string__              resw 100
- __size__                resw 1
- num2 resw 1
- num3 resw 1
- char2 resw 1
+ __string__              resd 100
+ __size__                resd 1
+ num2 resd 1
+ num3 resd 1
+ char2 resd 1
  
 section .data
  __report__ db 'Quantidade de Bytes lidos/escritos = '
- __num__     dw 20754
- __num1__        dw 888
- num1 dw 10
- char1 dw 'a'
+ __num__     dd 20754
+ __num1__        dd 888
+ num1 dd 10
+ char1 dd 'a'
  

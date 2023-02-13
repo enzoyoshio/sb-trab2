@@ -5,6 +5,65 @@ section .text
 
     _start:
 
+        pusha
+        mov edx, dword [num1]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        jmp exit
+
+        pusha
+        mov edx, dword [num2]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num3]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num1]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num2]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num3]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num3]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num2]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        pusha
+        mov edx, dword [num1]
+        mov dword [__num__], edx
+        call output
+        popa
+
+        jmp exit
+
+
         ; remember to pusha and popa before and after each call function
         call input
         mov ebx, dword [__num1__]
@@ -13,10 +72,20 @@ section .text
         call input
         mov ebx, dword [__num1__]
         mov dword [num3], ebx
+        
+        call input
+        mov ebx, dword [__num1__]
+        mov dword [num1], ebx
+
+        call input
+        mov ebx, dword [__num1__]
+        mov dword [num2], ebx
+
 
         dbb:
         mov eax, dword [num2]
         mov eax, dword [num3]
+        mov eax, dword [num1]
 
         jmp exit
 
@@ -107,6 +176,8 @@ section .text
 		int 0x80									; make the interruption
         pop ebp
         ret
+
+    
 
     int_2_str:
         push ebp
@@ -204,8 +275,8 @@ section .data
     msg         dw '++++++++++++++++++++++' 
     __num1__        dd 888
     num1 dw 10
-    num2 dw 100
-    num3 dw 100
+    num2 dw 20
+    num3 dw 30
 
 section .bss
 

@@ -1,10 +1,18 @@
 SECTION TEXT
 
+; aqui ta o problema
+; vou fazer o teste so com uma impressao
+; KKKKKKKKKKKKKKKKKKKKKKKKKK 
+; ta quebrado tbm 
+
 input num2
-
-copy num2,num3
-
+output num2
+input num3
 output num3
+
+output num1
+output num2
+
 
 stop
 

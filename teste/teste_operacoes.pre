@@ -1,7 +1,10 @@
 section text
 input num2
-copy num2,num3
+output num2
+input num3
 output num3
+output num1
+output num2
 stop 
 section data
 num1: const 10
