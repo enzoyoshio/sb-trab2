@@ -3,20 +3,20 @@ global _start
 str_2_int:
  push ebp
  mov eax, 0
- mov [__num1__],eax
+ mov dword [__num1__],eax
  mov ebx, 0
  mov edx,__string__
  loop_str_2_int:
- mov ecx,[__size__]
+ mov ecx, dword [__size__]
  cmp ecx,ebx
  je fim_loop_str_2_int
- mov eax,[__num1__]
+ mov eax, dword [__num1__]
  imul eax,10
  mov ecx,0
  mov cl, byte [edx]
  sub ecx,'0'
  add eax,ecx
- mov [__num1__],eax
+ mov dword [__num1__],eax
  inc ebx
  inc edx
  jmp loop_str_2_int
@@ -31,7 +31,7 @@ str_2_int:
  mov edx, 10
  int 0x80
  dec eax
- mov [__size__],eax
+ mov dword [__size__],eax
  pusha
  call str_2_int
  popa
@@ -53,7 +53,7 @@ str_2_int:
  mov eax, 4
  mov ebx, 1
  mov ecx, __string__
- mov edx, [__size__]
+ mov edx, dword [__size__]
  int 0x80
  pop ebp
  ret
@@ -62,7 +62,7 @@ str_2_int:
  mov eax, 0
  push dword [__num__]
  call int_size
- mov [__size__], eax
+ mov dword [__size__], eax
  tst:
  pop dword eax
  push dword [__size__]
@@ -91,7 +91,7 @@ str_2_int:
  int_to_str:
  push ebp
  mov ebp, esp
- mov eax, [ebp+8]
+ mov eax, dword [ebp+8]
  mov bx, [ebp+12]
  mov edi, __string__
  sub ebx, 1
@@ -121,22 +121,31 @@ str_2_int:
  
 _start:
 
-mov eax,[num1]
-mov [__num__], eax
-call output
+pusha
+mov ecx,hello
+mov edx,5
+call input_s
+popa
+
+pusha
+mov ecx,hello
+mov edx,5
+call output_s
+popa
 
 mov eax,1
 mov ebx,0
 int 0x80
 
 
+
 section .bss
- __string__              resw 100
- __size__                resw 1
- hello resb 50 
+ __string__              resd 100
+ __size__                resd 1
+ hello resd 50
+ 
 section .data
  __report__ db 'Quantidade de Bytes lidos/escritos = '
- __num__     dw 20754
- msg         dw '++++++++++++++++++++++'
- __num1__        dw 888
-    num1 dw 10
+ __num__     dd 20754
+ __num1__        dd 888
+ 

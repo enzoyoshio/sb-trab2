@@ -149,6 +149,7 @@ namespace processa_objeto {
             "mov ebx, 0\n",                   
             "mov edx,__string__\n",
             
+            "loop_str_2_int:\n",
             "mov ecx, dword [__size__]\n",             
             "cmp ecx,ebx\n",
             "je fim_loop_str_2_int\n",      

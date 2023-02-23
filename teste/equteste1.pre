@@ -1,5 +1,6 @@
 section text
 load abc
+stop 
 section data
 lad: const 10
 abc: space 
